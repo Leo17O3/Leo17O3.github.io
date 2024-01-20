@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioPlayer</title>
+  <link rel="stylesheet" href="./css/mini-dark.min.css">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="https://music.yandex.ru/api/audio/dist/index.min.js"></script>
+  </script>
+</head>
+
+<body>
+  <div class="text"></div>
+  <div class="row">
+    <img src="./images/JurijjShatunov.jpeg" alt=""class="top-center col-md-6 col-lg-6 col-sm-6">
+    <button class="controls-play center col-md-6 col-lg-6 col-sm-6" onclick="play()">Play</button>
+  <div class="overlay col-md-6 col-lg-6 col-sm-6"></div>
+  </div>
+  <div class="progress">
+    <div class="progress-loaded"></div>
+    <div class="progress-current"></div>
+</div>
+
+  <script>
+    let isPaused = false;
+    let playButton = document.querySelector(".controls-play");
+
+    let dom = {
+      play: document.querySelector(".controls-play"),
+      overlay: document.querySelector(".overlay"),
+      progress: {
+            bar: document.querySelector(".progress"),
+            loaded: document.querySelector(".progress-loaded"),
+            current: document.querySelector(".progress-current")
+        }
+    };
+    let urls = ["./music/Detstvo.mp3", "./music/DozdDozd.mp3", "./music/KazdomySvoyo.mp3", "./music/SedajaNoch.mp3", "./music/TetATet.mp3"];
+
+    let currentIndex = 0;
+
+    let audioPlayer = new ya.music.Audio();
+
+    audioPlayer.initPromise().then(function () {
+      dom.overlay.classList.add("overlay-hidden");
+    },
+      function (err) {
+        dom.overlay.innerHTML = err.message;
+        dom.overlay.classList.add("overlay-error");
+      });
+    function play() {
+
+      if (currentIndex >= urls.length) {
+        currentIndex = 0;
+      }
+
+      let state = audioPlayer.getState();
+      switch (state) {
+        case ya.music.Audio.STATE_PLAYING:
+          audioPlayer.pause();
+          playButton.innerHTML = "Play";
+          isPaused = true;
+          break;
+        case ya.music.Audio.STATE_PAUSED:
+          audioPlayer.resume();
+          playButton.innerHTML = "Pause";
+          isPaused = false;
+          break;
+        default:
+          audioPlayer.play(urls[currentIndex]);
+          ++currentIndex;
+          playButton.innerHTML = "Pause";
+          isPaused = false;
+          break;
+      }
+    }
+
+    audioPlayer.on(ya.music.Audio.EVENT_PROGRESS, function(timings) {
+        dom.progress.loaded.style.width = (timings.loaded / timings.duration * 100).toFixed(2) + "%";
+        dom.progress.current.style.width = (timings.position / timings.duration * 100).toFixed(2) + "%";
+
+        if(timings.duration - timings.position == 0 && timings.duration != 0){
+          audioPlayer.play(urls[currentIndex]);
+          ++currentIndex;
+        }
+    });
+  </script>
+</body>
+</html>
